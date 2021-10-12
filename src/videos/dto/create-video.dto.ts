@@ -6,4 +6,5 @@ export class CreateVideoDto {
 
 export type CreateVideoFileDto = CreateVideoDto & {
   filename: string
+  thumbnail: string
 }

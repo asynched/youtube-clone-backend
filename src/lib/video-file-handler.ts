@@ -1,5 +1,7 @@
+import * as path from 'path'
 import { stat } from 'fs/promises'
 import { createReadStream, ReadStream } from 'fs'
+import { VIDEOS_PATH } from 'src/config'
 
 type VideoStreamOptionsType = {
   start: number
@@ -13,13 +15,41 @@ type VideoInfoType = {
   videoEnd: number
 }
 
+type VideoFileInfo = {
+  responseHeaders: any
+  videoStream: ReadStream
+}
+
 export default class VideoFileHandler {
+  static getAbsolutePath(file: string) {
+    return path.join(VIDEOS_PATH, file)
+  }
+
+  static async getVideoFileInfo(
+    videoFilePath: string,
+    range: string,
+  ): Promise<VideoFileInfo> {
+    const videoInfo = await VideoFileHandler.getVideoInfo(videoFilePath, range)
+    const videoStreamOptions = VideoFileHandler.getVideoStreamOptions(videoInfo)
+    const responseHeaders = VideoFileHandler.getDefaultVideoHeaders(videoInfo)
+
+    const videoStream = VideoFileHandler.getVideoStream(
+      videoFilePath,
+      videoStreamOptions,
+    )
+
+    return {
+      responseHeaders,
+      videoStream,
+    }
+  }
+
   /**
    * Factory for a VideoStreamOptions object
    * @param { VideoInfoType } videoInfo Video information
    * @returns { VideoStreamOptionsType } A VideoStreamOptions object
    */
-  static getVideoStreamOptions({
+  private static getVideoStreamOptions({
     videoStart,
     videoEnd,
   }: VideoInfoType): VideoStreamOptionsType {
@@ -35,7 +65,7 @@ export default class VideoFileHandler {
    * @param { VideoStreamOptionsType } videoStreamOptions Options object for the video stream
    * @returns { ReadStream } The video stream for the given video file path
    */
-  static getVideoStream(
+  private static getVideoStream(
     videoPath: string,
     videoStreamOptions: VideoStreamOptionsType,
   ): ReadStream {
@@ -48,7 +78,7 @@ export default class VideoFileHandler {
    * @param { number } range Response range in bytes
    * @returns { VideoInfoType } A VideoInfo object
    */
-  static async getVideoInfo(
+  private static async getVideoInfo(
     videoPath: string,
     range: string,
   ): Promise<VideoInfoType> {
@@ -72,7 +102,7 @@ export default class VideoFileHandler {
    * @param { VideoInfoType } videoInfo Video info object
    * @returns Response headers for the video stream
    */
-  static getDefaultVideoHeaders(videoInfo: VideoInfoType) {
+  private static getDefaultVideoHeaders(videoInfo: VideoInfoType) {
     const { videoStart, videoEnd, videoSize } = videoInfo
 
     const contentLength = videoEnd - videoStart + 1

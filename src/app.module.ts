@@ -1,3 +1,4 @@
+import * as path from 'path'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { VideosModule } from './videos/videos.module'

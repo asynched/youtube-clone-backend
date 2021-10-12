@@ -3,7 +3,8 @@
 /node_modules
 
 # Static files
-/public
+/uploads
+/static
 
 # Logs
 logs

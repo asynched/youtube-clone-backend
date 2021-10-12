@@ -8,24 +8,32 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Req,
+  Res,
+  Logger,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
+import { Request, Response } from 'express'
+import { VIDEOS_PATH } from 'src/config'
 import { multerFilenameAdapter } from 'src/lib/adapters/multer'
 import { generateRandomFilename } from 'src/utils/files'
 import { VideosService } from './videos.service'
 import { CreateVideoDto } from './dto/create-video.dto'
 import { UpdateVideoDto } from './dto/update-video.dto'
+import VideoFileHandler from 'src/lib/video-file-handler'
 
 @Controller('videos')
 export class VideosController {
+  private readonly logger = new Logger(VideosController.name)
+
   constructor(private readonly videosService: VideosService) {}
 
   @Post()
   @UseInterceptors(
     FileInterceptor('video', {
       storage: diskStorage({
-        destination: './public/videos',
+        destination: VIDEOS_PATH,
         filename: multerFilenameAdapter(generateRandomFilename),
       }),
     }),
@@ -34,15 +42,14 @@ export class VideosController {
     @UploadedFile() file: Express.Multer.File,
     @Body() createVideoDto: CreateVideoDto,
   ) {
-    console.log(file)
-    console.log(createVideoDto)
+    const thumbnail = await this.videosService.generateThumbnail(file.filename)
     const video = await this.videosService.create({
       ...createVideoDto,
       filename: file.filename,
+      thumbnail: thumbnail,
     })
 
     return video
-    // return this.videosService.create(createVideoDto)
   }
 
   @Get()
@@ -52,7 +59,7 @@ export class VideosController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.videosService.findOne(+id)
+    return this.videosService.findOne(id)
   }
 
   @Patch(':id')
@@ -63,5 +70,31 @@ export class VideosController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.videosService.remove(+id)
+  }
+
+  @Get('media/:id')
+  async getVideoFile(@Req() request: Request, @Res() response: Response) {
+    try {
+      const id = request.params.id
+      const video = await this.videosService.findOne(id)
+      const range = request.headers['range']
+
+      const videoPath = VideoFileHandler.getAbsolutePath(video.filename)
+
+      const videoFileInfo = await VideoFileHandler.getVideoFileInfo(
+        videoPath,
+        range,
+      )
+
+      const { responseHeaders, videoStream } = videoFileInfo
+
+      response.writeHead(206, responseHeaders)
+      videoStream.pipe(response)
+    } catch (error) {
+      this.logger.error(error)
+      return response.status(404).json({
+        error: `Video with id "${request.params.id}" was not found`,
+      })
+    }
   }
 }

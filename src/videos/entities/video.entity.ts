@@ -17,6 +17,9 @@ export class Video {
   @Prop()
   filename: string
 
+  @Prop()
+  thumbnail: string
+
   @Prop({
     default: Date.now,
   })
