@@ -18,7 +18,7 @@ export const generateThumbnail = async (
         timemarks: [timemark],
         filename: thumbnailFilename,
         folder: THUMBNAILS_PATH,
-        size: '320x240',
+        size: '640x360',
       })
       .on('end', () => resolve(thumbnailFilename))
       .on('error', (error: Error) => reject(error))
