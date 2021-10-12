@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
-import { VideoController } from './video/video.controller'
+import { MongooseModule } from '@nestjs/mongoose'
+import { VideosModule } from './videos/videos.module'
 
 @Module({
-  imports: [],
-  controllers: [AppController, VideoController],
-  providers: [AppService],
+  imports: [
+    MongooseModule.forRoot('mongodb://localhost/youtube'),
+    VideosModule,
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
