@@ -24,6 +24,11 @@ export class Video {
     default: Date.now,
   })
   createdAt: Date
+
+  @Prop({
+    default: 100,
+  })
+  views: number
 }
 
 export const VideoSchema = SchemaFactory.createForClass(Video)

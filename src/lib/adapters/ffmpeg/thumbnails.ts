@@ -20,7 +20,7 @@ export const generateThumbnail = async (
         folder: THUMBNAILS_PATH,
         size: '640x360',
       })
-      .on('end', () => resolve(thumbnailFilename))
+      .on('end', () => resolve(thumbnailFilename + '.png'))
       .on('error', (error: Error) => reject(error))
   })
 }

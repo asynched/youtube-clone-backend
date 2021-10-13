@@ -3,14 +3,13 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   UseInterceptors,
   UploadedFile,
   Req,
   Res,
   Logger,
+  Query,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
@@ -20,7 +19,6 @@ import { multerFilenameAdapter } from 'src/lib/adapters/multer'
 import { generateRandomFilename } from 'src/utils/files'
 import { VideosService } from './videos.service'
 import { CreateVideoDto } from './dto/create-video.dto'
-import { UpdateVideoDto } from './dto/update-video.dto'
 import VideoFileHandler from 'src/lib/video-file-handler'
 
 @Controller('videos')
@@ -53,23 +51,14 @@ export class VideosController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query('page') page?: string) {
+    this.logger.log(page)
     return this.videosService.findAll()
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.videosService.findOne(id)
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVideoDto: UpdateVideoDto) {
-    return this.videosService.update(+id, updateVideoDto)
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.videosService.remove(+id)
   }
 
   @Get('media/:id')
